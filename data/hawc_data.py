@@ -40,8 +40,10 @@ def load(data_dir, subset='train'):
 
 class DataLoader(object):
     """ an object that generates batches of HAWC data for training
-        each data point has the shape (40, 40, 2)
-        the label has the shape (4,)
+        each data point has the shape (40, 40, 1), where we have just log-charge
+        - support soon for (40, 40, 2), where we have log-charge and hit time
+        the label has the shape (4,), composed of the parameters:
+            {azimuth, ...}
     """
 
     def __init__(self, data_dir, subset, batch_size, rng=None, shuffle=False, return_labels=False):
@@ -59,12 +61,12 @@ class DataLoader(object):
 
         # create temporary storage for the data, if not yet created
         if not os.path.exists(data_dir):
-            print('creating folder', data_dir)
-            os.makedirs(data_dir)
+            assert False, 'missing data folder'
 
         # load CIFAR-10 training data to RAM
-        self.data, self.labels = load(os.path.join(data_dir, 'cifar-10-python'), subset=subset)
-        self.data = np.transpose(self.data, (0, 2, 3, 1))  # (N,3,32,32) -> (N,32,32,3)
+        self.data, self.labels = load(data_dir, subset=subset)
+        print('data shape:', self.data.shape)
+        # self.data = np.transpose(self.data, (0, 2, 3, 1))  # (N,3,32,32) -> (N,32,32,3)
 
         self.p = 0  # pointer to where we are in iteration
         self.rng = np.random.RandomState(1) if rng is None else rng
