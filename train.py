@@ -62,15 +62,15 @@ else:
     loss_fun = nn.discretized_mix_logistic_loss
 
 # initialize data loaders for train/test splits
-if args.data_set == 'imagenet' and args.class_conditional:
-    raise("We currently don't have labels for the small imagenet data set")
-if args.data_set == 'cifar':
-    import data.cifar10_data as cifar10_data
-    DataLoader = cifar10_data.DataLoader
-elif args.data_set == 'imagenet':
-    import data.imagenet_data as imagenet_data
-    DataLoader = imagenet_data.DataLoader
-elif args.data_set == 'hawc':
+# if args.data_set == 'imagenet' and args.class_conditional:
+#     raise("We currently don't have labels for the small imagenet data set")
+# if args.data_set == 'cifar':
+#     import data.cifar10_data as cifar10_data
+#     DataLoader = cifar10_data.DataLoader
+# elif args.data_set == 'imagenet':
+#     import data.imagenet_data as imagenet_data
+#     DataLoader = imagenet_data.DataLoader
+if args.data_set == 'hawc':
     import data.hawc_data as hawc_data
     DataLoader = hawc_data.DataLoader
 else:

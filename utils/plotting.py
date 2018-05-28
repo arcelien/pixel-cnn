@@ -29,6 +29,7 @@ def img_tile(imgs, aspect_ratio=1.0, tile_shape=None, border=1,
     if stretch:
         imgs = img_stretch(imgs)
     imgs = np.array(imgs)
+    imgs = imgs[:,:,:,0]
     if imgs.ndim != 3 and imgs.ndim != 4:
         raise ValueError('imgs has wrong number of dimensions.')
     n_imgs = imgs.shape[0]
