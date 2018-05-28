@@ -40,9 +40,9 @@ def load(data_dir, subset='train'):
 
 class DataLoader(object):
     """ an object that generates batches of HAWC data for training
-        each data point has the shape (40, 40, 1), where we have just log-charge
-        - support soon for (40, 40, 2), where we have log-charge and hit time
-        the label has the shape (4,), composed of the parameters:
+        each data point has the shape (N, 40, 40, 1), where we have just log-charge
+        - support soon for (N, 40, 40, 2), where we have log-charge and hit time
+        the label has the shape (N, 4), composed of the parameters:
             {azimuth, ...}
     """
 
@@ -75,7 +75,8 @@ class DataLoader(object):
         return self.data.shape[1:]
 
     def get_num_labels(self):
-        return np.amax(self.labels) + 1
+        assert False
+        return len(self.labels[0]) #np.amax(self.labels) + 1
 
     def reset(self):
         self.p = 0
