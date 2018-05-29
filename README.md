@@ -1,4 +1,3 @@
-
 # pixel-cnn++
 
 This is a Python3 / [Tensorflow](https://www.tensorflow.org/) implementation 
