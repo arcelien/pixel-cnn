@@ -25,7 +25,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-i', '--data_dir', type=str, default='/home/danny/HAWC/data/', help='Location for the dataset')
 parser.add_argument('-o', '--save_dir', type=str, default='/home/danny/HAWC/saves/', help='Location for parameter checkpoints and samples')
 parser.add_argument('-d', '--data_set', type=str, default='hawc', help='Can be either cifar|imagenet')
-parser.add_argument('-t', '--save_interval', type=int, default=20, help='Every how many epochs to write checkpoint/samples?')
+parser.add_argument('-t', '--save_interval', type=int, default=3, help='Every how many epochs to write checkpoint/samples?')
 parser.add_argument('-r', '--load_params', dest='load_params', action='store_true', help='Restore training from previous model checkpoint?')
 # model
 parser.add_argument('-q', '--nr_resnet', type=int, default=5, help='Number of residual blocks per stage of the model')
@@ -37,8 +37,8 @@ parser.add_argument('-ed', '--energy_distance', dest='energy_distance', action='
 # optimization
 parser.add_argument('-l', '--learning_rate', type=float, default=0.001, help='Base learning rate')
 parser.add_argument('-e', '--lr_decay', type=float, default=0.999995, help='Learning rate decay, applied every step of the optimization')
-parser.add_argument('-b', '--batch_size', type=int, default=16, help='Batch size during training per GPU')
-parser.add_argument('-u', '--init_batch_size', type=int, default=16, help='How much data to use for data-dependent initialization.')
+parser.add_argument('-b', '--batch_size', type=int, default=8, help='Batch size during training per GPU')
+parser.add_argument('-u', '--init_batch_size', type=int, default=8, help='How much data to use for data-dependent initialization.')
 parser.add_argument('-p', '--dropout_p', type=float, default=0.5, help='Dropout strength (i.e. 1 - keep_prob). 0 = No dropout, higher = more dropout.')
 parser.add_argument('-x', '--max_epochs', type=int, default=5000, help='How many epochs to run in total?')
 parser.add_argument('-g', '--nr_gpu', type=int, default=1, help='How many GPUs to distribute the training across?')
@@ -62,14 +62,14 @@ else:
     loss_fun = nn.discretized_mix_logistic_loss
 
 # initialize data loaders for train/test splits
-# if args.data_set == 'imagenet' and args.class_conditional:
-#     raise("We currently don't have labels for the small imagenet data set")
-# if args.data_set == 'cifar':
-#     import data.cifar10_data as cifar10_data
-#     DataLoader = cifar10_data.DataLoader
-# elif args.data_set == 'imagenet':
-#     import data.imagenet_data as imagenet_data
-#     DataLoader = imagenet_data.DataLoader
+if args.data_set == 'imagenet' and args.class_conditional:
+    raise("We currently don't have labels for the small imagenet data set")
+if args.data_set == 'cifar':
+    import data.cifar10_data as cifar10_data
+    DataLoader = cifar10_data.DataLoader
+elif args.data_set == 'imagenet':
+    import data.imagenet_data as imagenet_data
+    DataLoader = imagenet_data.DataLoader
 if args.data_set == 'hawc':
     import data.hawc_data as hawc_data
     DataLoader = hawc_data.DataLoader

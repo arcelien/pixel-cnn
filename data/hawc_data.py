@@ -21,16 +21,24 @@ def unpickle(file, labels):
     return {'x': np.load(file), 'y': np.load(labels)}
 
 
-def load(data_dir, subset='train'):
+def load(data_dir, subset='train', dims=1):
+    if dims == 1:
+        suffix = '.npy'
+    elif dims == 2:
+        suffix = '_2.npy'
+    else:
+        assert False
+
     if subset == 'train':
-        train_data = [unpickle(os.path.join(data_dir, 'gamma_image_mapping_data.npy'),
-                               os.path.join(data_dir, 'gamma_labels.npy'))]
+
+        train_data = [unpickle(os.path.join(data_dir, 'gamma_image_mapping_data' + suffix),
+                               os.path.join(data_dir, 'gamma_labels' + suffix))]
         trainx = np.concatenate([d['x'] for d in train_data], axis=0)
         trainy = np.concatenate([d['y'] for d in train_data], axis=0)
         return trainx, trainy
     elif subset == 'test':
-        test_data = unpickle(os.path.join(data_dir, 'gamma_test_image_mapping_data.npy'),
-                             os.path.join(data_dir, 'gamma_test_labels.npy'))
+        test_data = unpickle(os.path.join(data_dir, 'gamma_test_image_mapping_data'+  suffix),
+                             os.path.join(data_dir, 'gamma_test_labels' + suffix))
         testx = test_data['x']
         testy = test_data['y']
         return testx, testy
@@ -46,7 +54,7 @@ class DataLoader(object):
             {azimuth, ...}
     """
 
-    def __init__(self, data_dir, subset, batch_size, rng=None, shuffle=False, return_labels=False):
+    def __init__(self, data_dir, subset, batch_size, rng=None, shuffle=False, return_labels=False, dims=2):
         """
         - data_dir is location where to store files
         - subset is train|test
@@ -60,11 +68,12 @@ class DataLoader(object):
         self.return_labels = return_labels
 
         # create temporary storage for the data, if not yet created
+        print(data_dir)
         if not os.path.exists(data_dir):
             assert False, 'missing data folder'
 
         # load CIFAR-10 training data to RAM
-        self.data, self.labels = load(data_dir, subset=subset)
+        self.data, self.labels = load(data_dir, subset=subset, dims=dims)
         print('data shape:', self.data.shape)
         # self.data = np.transpose(self.data, (0, 2, 3, 1))  # (N,3,32,32) -> (N,32,32,3)
 
