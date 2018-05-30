@@ -17,7 +17,6 @@ import tensorflow as tf
 
 from pixel_cnn_pp import nn
 from pixel_cnn_pp.model import model_spec
-from utils import plotting
 
 # -----------------------------------------------------------------------------
 parser = argparse.ArgumentParser()
@@ -37,8 +36,8 @@ parser.add_argument('-ed', '--energy_distance', dest='energy_distance', action='
 # optimization
 parser.add_argument('-l', '--learning_rate', type=float, default=0.001, help='Base learning rate')
 parser.add_argument('-e', '--lr_decay', type=float, default=0.999995, help='Learning rate decay, applied every step of the optimization')
-parser.add_argument('-b', '--batch_size', type=int, default=8, help='Batch size during training per GPU')
-parser.add_argument('-u', '--init_batch_size', type=int, default=8, help='How much data to use for data-dependent initialization.')
+parser.add_argument('-b', '--batch_size', type=int, default=16, help='Batch size during training per GPU')
+parser.add_argument('-u', '--init_batch_size', type=int, default=16, help='How much data to use for data-dependent initialization.')
 parser.add_argument('-p', '--dropout_p', type=float, default=0.5, help='Dropout strength (i.e. 1 - keep_prob). 0 = No dropout, higher = more dropout.')
 parser.add_argument('-x', '--max_epochs', type=int, default=5000, help='How many epochs to run in total?')
 parser.add_argument('-g', '--nr_gpu', type=int, default=1, help='How many GPUs to distribute the training across?')
@@ -47,8 +46,12 @@ parser.add_argument('--polyak_decay', type=float, default=0.9995, help='Exponent
 parser.add_argument('-ns', '--num_samples', type=int, default=1, help='How many batches of samples to output.')
 # reproducibility
 parser.add_argument('-s', '--seed', type=int, default=1, help='Random seed to use')
+parser.add_argument('--nosample', action='store_true', default=False, help="Don't sample from distribution with matplotlib")
 args = parser.parse_args()
 print('input args:\n', json.dumps(vars(args), indent=4, separators=(',',':'))) # pretty print args
+
+if not args.nosample:
+    from utils import plotting
 
 # -----------------------------------------------------------------------------
 # fix random seed for reproducibility
@@ -239,10 +242,11 @@ with tf.Session() as sess:
             for i in range(args.num_samples):
                 sample_x.append(sample_from_model(sess))
             sample_x = np.concatenate(sample_x,axis=0)
-            img_tile = plotting.img_tile(sample_x[:100], aspect_ratio=1.0, border_color=1.0, stretch=True)
-            img = plotting.plot_img(img_tile, title=args.data_set + ' samples')
-            plotting.plt.savefig(os.path.join(args.save_dir,'%s_sample%d.png' % (args.data_set, epoch)))
-            plotting.plt.close('all')
+            if not args.nosample:
+                img_tile = plotting.img_tile(sample_x[:100], aspect_ratio=1.0, border_color=1.0, stretch=True)
+                img = plotting.plot_img(img_tile, title=args.data_set + ' samples')
+                plotting.plt.savefig(os.path.join(args.save_dir,'%s_sample%d.png' % (args.data_set, epoch)))
+                plotting.plt.close('all')
             np.savez(os.path.join(args.save_dir,'%s_sample%d.npz' % (args.data_set, epoch)), sample_x)
 
             # save params
