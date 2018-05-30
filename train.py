@@ -65,21 +65,34 @@ else:
     loss_fun = nn.discretized_mix_logistic_loss
 
 # initialize data loaders for train/test splits
+train_data, test_data = None, None
 if args.data_set == 'imagenet' and args.class_conditional:
     raise("We currently don't have labels for the small imagenet data set")
-if args.data_set == 'cifar':
+elif args.data_set == 'cifar':
     import data.cifar10_data as cifar10_data
     DataLoader = cifar10_data.DataLoader
 elif args.data_set == 'imagenet':
     import data.imagenet_data as imagenet_data
     DataLoader = imagenet_data.DataLoader
-if args.data_set == 'hawc':
+elif args.data_set == 'hawc':
     import data.hawc_data as hawc_data
     DataLoader = hawc_data.DataLoader
+    train_data = DataLoader(args.data_dir, 'train', args.batch_size * args.nr_gpu, rng=rng, shuffle=True,
+                            return_labels=args.class_conditional, dims=1)
+    test_data = DataLoader(args.data_dir, 'test', args.batch_size * args.nr_gpu, shuffle=False,
+                           return_labels=args.class_conditional, dims=1)
+elif args.data_set == 'hawc2':
+    import data.hawc_data as hawc_data
+    DataLoader = hawc_data.DataLoader
+    train_data = DataLoader(args.data_dir, 'train', args.batch_size * args.nr_gpu, rng=rng, shuffle=True,
+                            return_labels=args.class_conditional, dims=2)
+    test_data = DataLoader(args.data_dir, 'test', args.batch_size * args.nr_gpu, shuffle=False,
+                           return_labels=args.class_conditional, dims=2)
 else:
     raise("unsupported dataset")
-train_data = DataLoader(args.data_dir, 'train', args.batch_size * args.nr_gpu, rng=rng, shuffle=True, return_labels=args.class_conditional)
-test_data = DataLoader(args.data_dir, 'test', args.batch_size * args.nr_gpu, shuffle=False, return_labels=args.class_conditional)
+if train_data is not None and test_data is not None:
+    train_data = DataLoader(args.data_dir, 'train', args.batch_size * args.nr_gpu, rng=rng, shuffle=True, return_labels=args.class_conditional)
+    test_data = DataLoader(args.data_dir, 'test', args.batch_size * args.nr_gpu, shuffle=False, return_labels=args.class_conditional)
 obs_shape = train_data.get_observation_size() # e.g. a tuple (32,32,3)
 assert len(obs_shape) == 3, 'assumed right now'
 
@@ -177,6 +190,7 @@ def make_feed_dict(data, init=False):
         y = None
     # print(x.shape)
     if x.shape[3] == 3:
+        assert args.data_set is not 'hawc' and args.data_set is not 'hawc2'
         x = np.cast[np.float32]((x - 127.5) / 127.5) # input to pixelCNN is scaled from uint8 [0,255] to float in range [-1,1]
     else:
         x = np.cast[np.float32](x)

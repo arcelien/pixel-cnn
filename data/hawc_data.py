@@ -54,7 +54,7 @@ class DataLoader(object):
             {azimuth, ...}
     """
 
-    def __init__(self, data_dir, subset, batch_size, rng=None, shuffle=False, return_labels=False, dims=2):
+    def __init__(self, data_dir, subset, batch_size, rng=None, shuffle=False, return_labels=False, dims=1):
         """
         - data_dir is location where to store files
         - subset is train|test
