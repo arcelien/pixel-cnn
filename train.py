@@ -17,7 +17,6 @@ import tensorflow as tf
 
 from pixel_cnn_pp import nn
 from pixel_cnn_pp.model import model_spec
-from utils import plotting
 
 # -----------------------------------------------------------------------------
 parser = argparse.ArgumentParser()
@@ -25,7 +24,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-i', '--data_dir', type=str, default='/home/danny/HAWC/data/', help='Location for the dataset')
 parser.add_argument('-o', '--save_dir', type=str, default='/home/danny/HAWC/saves/', help='Location for parameter checkpoints and samples')
 parser.add_argument('-d', '--data_set', type=str, default='hawc', help='Can be either cifar|imagenet')
-parser.add_argument('-t', '--save_interval', type=int, default=20, help='Every how many epochs to write checkpoint/samples?')
+parser.add_argument('-t', '--save_interval', type=int, default=3, help='Every how many epochs to write checkpoint/samples?')
 parser.add_argument('-r', '--load_params', dest='load_params', action='store_true', help='Restore training from previous model checkpoint?')
 # model
 parser.add_argument('-q', '--nr_resnet', type=int, default=5, help='Number of residual blocks per stage of the model')
@@ -47,8 +46,12 @@ parser.add_argument('--polyak_decay', type=float, default=0.9995, help='Exponent
 parser.add_argument('-ns', '--num_samples', type=int, default=1, help='How many batches of samples to output.')
 # reproducibility
 parser.add_argument('-s', '--seed', type=int, default=1, help='Random seed to use')
+parser.add_argument('--nosample', action='store_true', default=False, help="Don't sample from distribution with matplotlib")
 args = parser.parse_args()
 print('input args:\n', json.dumps(vars(args), indent=4, separators=(',',':'))) # pretty print args
+
+if not args.nosample:
+    from utils import plotting
 
 # -----------------------------------------------------------------------------
 # fix random seed for reproducibility
@@ -62,14 +65,14 @@ else:
     loss_fun = nn.discretized_mix_logistic_loss
 
 # initialize data loaders for train/test splits
-# if args.data_set == 'imagenet' and args.class_conditional:
-#     raise("We currently don't have labels for the small imagenet data set")
-# if args.data_set == 'cifar':
-#     import data.cifar10_data as cifar10_data
-#     DataLoader = cifar10_data.DataLoader
-# elif args.data_set == 'imagenet':
-#     import data.imagenet_data as imagenet_data
-#     DataLoader = imagenet_data.DataLoader
+if args.data_set == 'imagenet' and args.class_conditional:
+    raise("We currently don't have labels for the small imagenet data set")
+if args.data_set == 'cifar':
+    import data.cifar10_data as cifar10_data
+    DataLoader = cifar10_data.DataLoader
+elif args.data_set == 'imagenet':
+    import data.imagenet_data as imagenet_data
+    DataLoader = imagenet_data.DataLoader
 if args.data_set == 'hawc':
     import data.hawc_data as hawc_data
     DataLoader = hawc_data.DataLoader
@@ -238,17 +241,22 @@ with tf.Session() as sess:
 
         if epoch % args.save_interval == 0:
 
+            gen_time = time.time()
             # generate samples from the model
             sample_x = []
             for i in range(args.num_samples):
                 sample_x.append(sample_from_model(sess))
             sample_x = np.concatenate(sample_x,axis=0)
-            img_tile = plotting.img_tile(sample_x[:100], aspect_ratio=1.0, border_color=1.0, stretch=True)
-            img = plotting.plot_img(img_tile, title=args.data_set + ' samples')
-            plotting.plt.savefig(os.path.join(args.save_dir,'%s_sample%d.png' % (args.data_set, epoch)))
-            plotting.plt.close('all')
+            if not args.nosample:
+                img_tile = plotting.img_tile(sample_x[:100], aspect_ratio=1.0, border_color=1.0, stretch=True)
+                img = plotting.plot_img(img_tile, title=args.data_set + ' samples')
+                plotting.plt.savefig(os.path.join(args.save_dir,'%s_sample%d.png' % (args.data_set, epoch)))
+                plotting.plt.close('all')
             np.savez(os.path.join(args.save_dir,'%s_sample%d.npz' % (args.data_set, epoch)), sample_x)
 
             # save params
             saver.save(sess, args.save_dir + '/params_' + args.data_set + '.ckpt')
             np.savez(args.save_dir + '/test_bpd_' + args.data_set + '.npz', test_bpd=np.array(test_bpd))
+
+            print("time to sample:", time.time() - gen_time)
+
