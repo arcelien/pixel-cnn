@@ -237,7 +237,7 @@ with tf.Session() as sess:
 
         if epoch % args.save_interval == 0:
 
-	    gen_time = time.time()
+            gen_time = time.time()
             # generate samples from the model
             sample_x = []
             for i in range(args.num_samples):
@@ -254,5 +254,5 @@ with tf.Session() as sess:
             saver.save(sess, args.save_dir + '/params_' + args.data_set + '.ckpt')
             np.savez(args.save_dir + '/test_bpd_' + args.data_set + '.npz', test_bpd=np.array(test_bpd))
 
-	    print("time to sample:", time.time() - gen_time)
+            print("time to sample:", time.time() - gen_time)
 
