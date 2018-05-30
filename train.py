@@ -175,7 +175,7 @@ def make_feed_dict(data, init=False):
     else:
         x = data
         y = None
-    print(x.shape)
+    # print(x.shape)
     if x.shape[3] == 3:
         x = np.cast[np.float32]((x - 127.5) / 127.5) # input to pixelCNN is scaled from uint8 [0,255] to float in range [-1,1]
     else:
