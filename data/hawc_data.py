@@ -30,14 +30,13 @@ def load(data_dir, subset='train', dims=1):
         assert False
 
     if subset == 'train':
-
         train_data = [unpickle(os.path.join(data_dir, 'gamma_image_mapping_data' + suffix),
                                os.path.join(data_dir, 'gamma_labels' + suffix))]
         trainx = np.concatenate([d['x'] for d in train_data], axis=0)
         trainy = np.concatenate([d['y'] for d in train_data], axis=0)
         return trainx, trainy
     elif subset == 'test':
-        test_data = unpickle(os.path.join(data_dir, 'gamma_test_image_mapping_data'+  suffix),
+        test_data = unpickle(os.path.join(data_dir, 'gamma_test_image_mapping_data' +  suffix),
                              os.path.join(data_dir, 'gamma_test_labels' + suffix))
         testx = test_data['x']
         testy = test_data['y']

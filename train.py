@@ -90,9 +90,6 @@ elif args.data_set == 'hawc2':
                            return_labels=args.class_conditional, dims=2)
 else:
     raise("unsupported dataset")
-if train_data is not None and test_data is not None:
-    train_data = DataLoader(args.data_dir, 'train', args.batch_size * args.nr_gpu, rng=rng, shuffle=True, return_labels=args.class_conditional)
-    test_data = DataLoader(args.data_dir, 'test', args.batch_size * args.nr_gpu, shuffle=False, return_labels=args.class_conditional)
 obs_shape = train_data.get_observation_size() # e.g. a tuple (32,32,3)
 assert len(obs_shape) == 3, 'assumed right now'
 
@@ -193,7 +190,7 @@ def make_feed_dict(data, init=False):
         assert args.data_set is not 'hawc' and args.data_set is not 'hawc2'
         x = np.cast[np.float32]((x - 127.5) / 127.5) # input to pixelCNN is scaled from uint8 [0,255] to float in range [-1,1]
     else:
-        x = np.cast[np.float32](x)
+        x = np.cast[np.float32]((x - 127.5) / 127.5)
     if init:
         feed_dict = {x_init: x}
         if y is not None:
