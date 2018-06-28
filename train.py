@@ -98,14 +98,24 @@ x_init = tf.placeholder(tf.float32, shape=(args.init_batch_size,) + obs_shape)
 xs = [tf.placeholder(tf.float32, shape=(args.batch_size, ) + obs_shape) for i in range(args.nr_gpu)]
 
 # if the model is class-conditional we'll set up label placeholders + one-hot encodings 'h' to condition on
+# for HAWC, `h` is a single variable that's continuous, azimuth
 if args.class_conditional:
     num_labels = train_data.get_num_labels()
-    y_init = tf.placeholder(tf.int32, shape=(args.init_batch_size,))
-    h_init = tf.one_hot(y_init, num_labels)
-    y_sample = np.split(np.mod(np.arange(args.batch_size*args.nr_gpu), num_labels), args.nr_gpu)
-    h_sample = [tf.one_hot(tf.Variable(y_sample[i], trainable=False), num_labels) for i in range(args.nr_gpu)]
-    ys = [tf.placeholder(tf.int32, shape=(args.batch_size,)) for i in range(args.nr_gpu)]
-    hs = [tf.one_hot(ys[i], num_labels) for i in range(args.nr_gpu)]
+    y_init = tf.placeholder(tf.float32, shape=(args.init_batch_size, 1))
+    # h_init = tf.one_hot(y_init, num_labels)
+    h_init = tf.reshape(y_init, [-1, 1])
+
+    # y_sample = np.split(np.mod(np.arange(args.batch_size*args.nr_gpu), num_labels), args.nr_gpu)
+    y_sample = np.split((np.linspace(-3, 3, args.batch_size*args.nr_gpu)), args.nr_gpu)
+    print(y_sample[0].shape)
+
+    # h_sample = [tf.one_hot(tf.Variable(y_sample[i], trainable=False), num_labels) for i in range(args.nr_gpu)]
+    h_sample = [tf.Variable(y_sample[i].reshape([-1, 1]), trainable=False, dtype=tf.float32) for i in range(args.nr_gpu)]
+
+    ys = [tf.placeholder(tf.float32, shape=(args.batch_size, 1)) for i in range(args.nr_gpu)]
+    # hs = [tf.one_hot(ys[i], num_labels) for i in range(args.nr_gpu)]
+    hs = [tf.reshape(ys[i], [-1, 1]) for i in range(args.nr_gpu)]
+
 else:
     h_init = None
     h_sample = [None] * args.nr_gpu

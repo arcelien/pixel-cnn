@@ -83,8 +83,8 @@ class DataLoader(object):
         return self.data.shape[1:]
 
     def get_num_labels(self):
-        assert False
-        return len(self.labels[0]) #np.amax(self.labels) + 1
+        return 2
+        # return len(self.labels[0]) #np.amax(self.labels) + 1
 
     def reset(self):
         self.p = 0
@@ -113,7 +113,7 @@ class DataLoader(object):
         self.p += self.batch_size
 
         if self.return_labels:
-            return x, y
+            return x, y[:,1:2]
         else:
             return x
 
